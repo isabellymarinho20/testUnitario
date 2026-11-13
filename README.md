@@ -323,16 +323,4 @@ Os headers exibidos passam pelo proxy Nginx; headers restritos pelo navegador, c
 
 Respostas `400`, `404` e `409` são respostas HTTP e aparecem com seus headers e corpo. Uma falha de conexão é apresentada separadamente, sem inventar um status HTTP. O cliente limita a espera a 15 segundos.
 
-### Roteiro de teste na aula
-
-1. Escolha **Alunos · listar** e envie a requisição. Observe o status `200`, os headers e o array JSON.
-2. Use **Alunos · criar** para cadastrar o RA `258099`. Observe `201`. Reenvie a chamada para observar `409` por RA duplicado.
-3. Busque esse aluno e confira os dados retornados.
-4. Crie uma disciplina e anote o `id` retornado.
-5. Crie uma matrícula usando o RA do aluno e o ID da disciplina criada. Reenvie para observar `409` por matrícula duplicada.
-6. Experimente **Erro 400 · dados inválidos** e **Erro 404 · aluno inexistente**. Compare os corpos e headers com os das respostas de sucesso.
-
-Os exemplos baseados no seed pressupõem que seus registros ainda existem. Se o RA de teste já estiver cadastrado, use outro RA e ajuste as chamadas seguintes.
-
-
 O corpo JSON pode conter campos extras. Cada serviço valida os campos necessários e envia somente esses campos ao repositório. A atividade abrange testes unitários de validação, serviços, repositórios e identificação de erros do banco. As rotas e a montagem do Express ficam fora do escopo e podem aparecer sem cobertura no relatório.
