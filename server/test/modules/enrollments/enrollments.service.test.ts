@@ -5,6 +5,14 @@ import type {
 } from "../../../src/modules/enrollments/enrollments.repository";
 import { EnrollmentsService } from "../../../src/modules/enrollments/enrollments.service";
 
+async function expectHttpError(
+  action: Promise<unknown>,
+  statusCode: 400 | 404 | 409,
+) {
+  await expect(action).rejects.toThrow(HttpError);
+  await expect(action).rejects.toMatchObject({ statusCode });
+}
+
 describe("EnrollmentsService", () => {
   const fixedDate = new Date("2026-10-15T12:00:00.000Z");
   let repository: jest.Mocked<EnrollmentRepository>;
@@ -41,14 +49,7 @@ describe("EnrollmentsService", () => {
   ])(
     "deve rejeitar criação com chave inválida %p com statusCode 400 sem chamar repository.create",
     async (invalidInput) => {
-      await expect(service.create(invalidInput)).rejects.toEqual(
-        expect.objectContaining({
-          statusCode: 400,
-        }),
-      );
-      await expect(service.create(invalidInput)).rejects.toBeInstanceOf(
-        HttpError,
-      );
+      await expectHttpError(service.create(invalidInput), 400);
       expect(repository.create).not.toHaveBeenCalled();
     },
   );
@@ -56,35 +57,27 @@ describe("EnrollmentsService", () => {
   test("deve lançar HttpError 404 quando aluno ou disciplina não existir (violação de chave estrangeira 23503)", async () => {
     repository.create.mockRejectedValue({ code: "23503" });
 
-    await expect(
+    await expectHttpError(
       service.create({ studentRa: 123, courseId: 1 }),
-    ).rejects.toEqual(
-      expect.objectContaining({
-        statusCode: 404,
-      }),
+      404,
     );
+    expect(repository.create).toHaveBeenCalledTimes(1);
   });
 
   test("deve lançar HttpError 409 quando a matrícula for duplicada (violação de unicidade 23505)", async () => {
     repository.create.mockRejectedValue({ code: "23505" });
 
-    await expect(
+    await expectHttpError(
       service.create({ studentRa: 123, courseId: 1 }),
-    ).rejects.toEqual(
-      expect.objectContaining({
-        statusCode: 409,
-      }),
+      409,
     );
+    expect(repository.create).toHaveBeenCalledTimes(1);
   });
 
   test("deve lançar HttpError 404 ao buscar matrícula inexistente findOne(123, 1) e repassar os argumentos na ordem correta", async () => {
     repository.findOne.mockResolvedValue(undefined);
 
-    await expect(service.findOne(123, 1)).rejects.toEqual(
-      expect.objectContaining({
-        statusCode: 404,
-      }),
-    );
+    await expectHttpError(service.findOne(123, 1), 404);
     expect(repository.findOne).toHaveBeenCalledTimes(1);
     expect(repository.findOne).toHaveBeenCalledWith(123, 1);
   });
